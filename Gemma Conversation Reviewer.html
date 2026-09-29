@@ -1626,7 +1626,7 @@
                 `https://us.pandora.net/en/search?q=${id}`,
             
             // Password for PM/Team notes section
-            pmPassword: 'pandora2026'
+            pmPasswordHash: '0bec2f0e4fd663ebc6d9483791c5f0c1b0d26bf1503f759528ab9bcd026b72cd'
         };
         // ============================================
         
@@ -2100,11 +2100,18 @@
             if (modal) modal.remove();
         }
 
-        function verifyPassword() {
+        async function hashPassword(text) {
+            const data = new TextEncoder().encode(text);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function verifyPassword() {
             const input = document.getElementById('passwordInput');
             const error = document.getElementById('passwordError');
-            
-            if (input.value === CONFIG.pmPassword) {
+            const inputHash = await hashPassword(input.value);
+
+            if (inputHash === CONFIG.pmPasswordHash) {
                 pmUnlocked = true;
                 closePasswordDialog();
                 
