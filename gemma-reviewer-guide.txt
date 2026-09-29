@@ -1,0 +1,192 @@
+﻿Gemma Conversation Reviewer V2
+User Guide for Store Staff
+
+What is this tool?
+
+The Gemma Conversation Reviewer lets you read real conversations between customers and Gemma (our AI shopping assistant). Your feedback helps us understand where Gemma is doing well and where she needs improvement.
+
+As store associates, you have valuable expertise about our products and customers. Your reviews will help make Gemma better at recommending the right jewelry.
+
+Getting Started
+
+Step 1: Open the Tool
+
+1. Find the file called "Gemma Conversation Reviewer V2.html" on your computer
+2. Double-click to open it in your web browser (Chrome, Edge, or Safari)
+3. You should see a welcome screen with "Gemma Conversation Reviewer V2" at the top
+
+Step 2: Load Your Conversations
+
+4. Click the pink "Load Conversations" button in the top right
+5. Select the Excel file (.xlsx) from the Conversations folder
+6. Wait a moment for the conversations to load
+7. You will see a list of conversations appear on the left side
+
+Reviewing Conversations
+
+Step 3: Select a Conversation
+
+8. Click on any conversation in the left panel
+9. The conversation will appear in the main area
+10. Customer messages appear on the left in white bubbles
+11. Gemma's responses appear on the right in dark bubbles
+12. Product recommendations show as product images below each response
+
+Step 4: Expand the Review Panel
+
+When you're ready to provide feedback:
+
+13. Click the "▼ Review" button at the top right
+14. The review panel will expand, showing all rating options
+15. The conversation stays visible - you can scroll to reference it while reviewing
+
+Step 5: Rate the Conversation
+
+Overall Rating (1-5 stars)
+How well did Gemma handle this conversation overall? Think about whether you would be happy if this were a real customer in your store.
+
+⚠️ NOTE: Ratings of 3 stars or lower REQUIRE notes explaining the issues.
+
+Step 6: Select Tags
+
+NEW! Tags help us understand specific aspects of the conversation. Select ONE tag per row:
+
+RECOMMENDATIONS QUALITY (Choose one)
+• 🎯 Perfect products - Exactly what the customer needed
+• ✔️ Good products - Appropriate recommendations
+• ⚠️ Missed opportunity - Could have recommended better products
+• ❌ Wrong products - Recommendations didn't match customer needs
+
+⚠️ NOTE: "Wrong products" and "Missed opportunity" REQUIRE product suggestions AND notes.
+
+CONVERSATION QUALITY (Choose one)
+• ✅ Great conversation - Exemplary interaction
+• 👍 Good overall - Solid performance
+• ⚠️ Needs improvement - Has fixable issues
+
+⚠️ NOTE: "Needs improvement" REQUIRES notes.
+
+INTENT RECOGNITION (Choose one)
+• 🎯 Understood needs - Gemma grasped what customer wanted
+• ❌ Misunderstood - Didn't get customer's request
+• 🚫 Critical failure - Major problem
+
+⚠️ NOTE: "Misunderstood" and "Critical failure" REQUIRE notes.
+
+Step 7: Suggest Better Products (When Required)
+
+If you selected "Wrong products" or "Missed opportunity":
+
+14. This field becomes MANDATORY (red border appears)
+15. Enter a product ID (like 794244C01)
+16. Click the + button to add it
+17. You can add multiple products
+18. These suggestions help the team understand what should have been recommended
+
+Step 8: Add Notes (When Required)
+
+Use the notes field to explain your ratings. Notes are REQUIRED when:
+• Overall rating is 3 stars or lower
+• You selected "Wrong products" or "Missed opportunity"
+• You selected "Needs improvement"
+• You selected "Misunderstood" or "Critical failure"
+
+When notes are required, the field will have a RED BORDER and show: "Notes required - explain the issues..."
+
+Good note examples:
+• "Customer wanted something for a wedding, but Gemma suggested everyday charms"
+• "Great job understanding the customer wanted silver only"
+• "Tone was too casual for what seemed like an older customer"
+• "Should have recommended 794244C01 and 763421C00 for this occasion"
+
+Step 9: Flag Problem Messages (Optional)
+
+If a specific Gemma response was particularly problematic:
+
+19. Hover over the message
+20. Click the 🚩 Flag button that appears
+21. Flagged messages will turn red
+
+Using Filters
+
+The left panel has filters to help you find specific conversations:
+
+• Search: Type keywords to find conversations about specific topics
+• Date Range: Filter by when conversations happened
+• Number of Turns: Find short or long conversations
+• Status: Show only reviewed or unreviewed conversations
+• Sort By: Change the order (newest first, most turns, etc.)
+
+Moving Between Conversations
+
+You can navigate in two ways:
+
+• Click conversations in the left panel
+• Use the ← Previous and Next → buttons at the top
+
+Your work is automatically saved every 30 seconds! Look for "✓ Saved at [time]" in the header.
+
+The progress bar shows how many conversations you have reviewed.
+
+Saving Your Work
+
+Export Your Reviews
+
+When you are finished reviewing:
+
+22. Click "Export Reviews" in the top right
+23. The system will check if all required fields are complete
+24. If any conversations are missing required notes or suggestions, you'll see a warning
+25. You can choose to export anyway or go back and complete them
+26. A dialog will show your progress and ask for your overall rating
+27. Enter a number from 1-5 for how you would rate Gemma overall
+28. Click Export
+29. A file will download to your computer
+30. Upload your file to the retail staff folder, following this naming convention: date-initials
+    Example: 20260122-riarn
+
+Resume Later
+
+Your work auto-saves every 30 seconds to your browser!
+
+If you need to continue later:
+• On the same computer/browser: Just reload the page and load the conversations again
+• The tool will ask if you want to restore your auto-saved work
+• Click "Yes" to continue where you left off
+
+To work on a different computer:
+31. Export your reviews first
+32. On the new computer, load the conversations
+33. Click "Load Reviews" and select your exported file
+34. Your previous ratings and notes will be restored
+
+Understanding Visual Indicators
+
+🔴 Red Border = This field is now required based on your tag selection
+⚠️ Yellow Warning = Missing required information (only shows on export)
+★ Stars filled = Your overall rating
+🟣 Purple tag = Currently selected tag for that category
+✓ Green "Saved at" = Your work is safely auto-saved
+
+Tips for Good Reviews
+
+Do:
+• Think about what you would do in-store
+• Note specific product IDs that would be better
+• Read the full conversation for context
+• Consider if the customer seemed satisfied
+• Fill in all required fields (watch for red borders)
+• Explain WHY when you mark something as wrong
+
+Avoid:
+• Being too harsh on minor issues
+• Skipping the notes field when something is wrong (it's required!)
+• Rating based only on the first message
+• Rushing through without careful reading
+• Ignoring the red border warnings
+
+Questions?
+
+If you have any questions or run into issues, contact the PVA team.
+
+Thank you for helping improve Gemma!

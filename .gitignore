@@ -1,0 +1,5 @@
+*.xlsx
+~$*
+gemma-reviews-alice.json
+gemma-reviews-bob.json
+gemma-reviews-2026-02-18*.json

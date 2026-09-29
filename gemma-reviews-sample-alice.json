@@ -1,0 +1,71 @@
+{
+  "exportDate": "2026-02-25T09:14:00.000Z",
+  "totalConversations": 15,
+  "reviewedCount": 15,
+  "reviewerAvgRating": 3,
+  "reviews": {
+    "ratings": {
+      "REC-0001": 5, "REC-0002": 1, "REC-0003": 5, "REC-0004": 4,
+      "REC-0005": 3, "REC-0006": 2, "REC-0007": 5, "REC-0008": 1,
+      "REC-0009": 4, "REC-0010": 2, "REC-0011": 3, "REC-0012": 1,
+      "REC-0013": 4, "REC-0014": 2, "REC-0015": 5
+    },
+    "relevance": {
+      "REC-0001": "yes",  "REC-0002": "no",      "REC-0003": "yes",
+      "REC-0004": "yes",  "REC-0005": "partial",  "REC-0006": "no",
+      "REC-0007": "yes",  "REC-0008": "no",       "REC-0009": "yes",
+      "REC-0010": "partial", "REC-0011": "partial", "REC-0012": "no",
+      "REC-0013": "yes",  "REC-0014": "no",       "REC-0015": "yes"
+    },
+    "textQuality": {
+      "REC-0001": "good",       "REC-0002": "poor",       "REC-0003": "good",
+      "REC-0004": "good",       "REC-0005": "acceptable",  "REC-0006": "poor",
+      "REC-0007": "good",       "REC-0008": "poor",       "REC-0009": "good",
+      "REC-0010": "acceptable", "REC-0011": "acceptable",  "REC-0012": "poor",
+      "REC-0013": "good",       "REC-0014": "poor",       "REC-0015": "good"
+    },
+    "tags": {
+      "REC-0001": { "recommendations": "excellent-match", "response": "excellent-response", "intent": "accurate-intent" },
+      "REC-0002": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0003": { "recommendations": "excellent-match", "response": "good-response",      "intent": "accurate-intent" },
+      "REC-0004": { "recommendations": "good-match",      "response": "good-response",      "intent": "mostly-accurate" },
+      "REC-0005": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "partially-accurate" },
+      "REC-0006": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0007": { "recommendations": "excellent-match", "response": "excellent-response", "intent": "accurate-intent" },
+      "REC-0008": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0009": { "recommendations": "good-match",      "response": "good-response",      "intent": "accurate-intent" },
+      "REC-0010": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "partially-accurate" },
+      "REC-0011": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "mostly-accurate" },
+      "REC-0012": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0013": { "recommendations": "good-match",      "response": "good-response",      "intent": "accurate-intent" },
+      "REC-0014": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0015": { "recommendations": "excellent-match", "response": "excellent-response", "intent": "accurate-intent" }
+    },
+    "suggestions": {
+      "REC-0002": ["798691C00", "393513C01"],
+      "REC-0006": ["590413C01"],
+      "REC-0008": ["394086C01", "590413C01"],
+      "REC-0012": ["394086C01", "590413C01"],
+      "REC-0014": ["393513C01"]
+    },
+    "notes": {
+      "REC-0002": "Completely off — recommended silver bracelets when customer was asking about gold earrings for a gift.",
+      "REC-0005": "Products were in the right ballpark but the reply felt robotic and too long.",
+      "REC-0006": "Gemma missed the whole point of the question. Customer wanted something personalised.",
+      "REC-0008": "Very confusing response, wrong product category entirely.",
+      "REC-0010": "Some decent products but the reply was stiff and didn't acknowledge the customer's occasion.",
+      "REC-0012": "Totally wrong. Suggested men's items for a women's birthday gift. Clear training issue.",
+      "REC-0014": "Off topic entirely. Gemma responded to the wrong product category."
+    },
+    "pmNotes": {
+      "REC-0012": "Recurring gifting use case failure — flag for model retraining review."
+    },
+    "flags": {
+      "REC-0002": [1],
+      "REC-0008": [2, 3],
+      "REC-0012": [0]
+    },
+    "priorityConvIds": ["REC-0002", "REC-0008", "REC-0012"],
+    "avgRating": 3
+  }
+}

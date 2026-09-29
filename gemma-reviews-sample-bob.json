@@ -1,0 +1,68 @@
+{
+  "exportDate": "2026-02-25T11:40:00.000Z",
+  "totalConversations": 15,
+  "reviewedCount": 12,
+  "reviewerAvgRating": 3,
+  "reviews": {
+    "ratings": {
+      "REC-0001": 5,
+      "REC-0002": 2,
+      "REC-0003": 1,
+      "REC-0004": 2,
+      "REC-0005": 3,
+      "REC-0006": 2,
+      "REC-0007": 4,
+      "REC-0008": 3,
+      "REC-0009": 5,
+      "REC-0010": 5,
+      "REC-0011": 2,
+      "REC-0012": 1
+    },
+    "relevance": {
+      "REC-0001": "yes",     "REC-0002": "partial", "REC-0003": "no",
+      "REC-0004": "partial", "REC-0005": "partial", "REC-0006": "no",
+      "REC-0007": "yes",     "REC-0008": "partial", "REC-0009": "yes",
+      "REC-0010": "yes",     "REC-0011": "partial", "REC-0012": "no"
+    },
+    "textQuality": {
+      "REC-0001": "good",       "REC-0002": "acceptable", "REC-0003": "poor",
+      "REC-0004": "acceptable", "REC-0005": "acceptable", "REC-0006": "poor",
+      "REC-0007": "good",       "REC-0008": "acceptable", "REC-0009": "good",
+      "REC-0010": "good",       "REC-0011": "acceptable", "REC-0012": "poor"
+    },
+    "tags": {
+      "REC-0001": { "recommendations": "excellent-match", "response": "excellent-response", "intent": "accurate-intent" },
+      "REC-0002": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "partially-accurate" },
+      "REC-0003": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0004": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "mostly-accurate" },
+      "REC-0005": { "recommendations": "partial-match",   "response": "good-response",      "intent": "partially-accurate" },
+      "REC-0006": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0007": { "recommendations": "good-match",      "response": "excellent-response", "intent": "accurate-intent" },
+      "REC-0008": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "partially-accurate" },
+      "REC-0009": { "recommendations": "excellent-match", "response": "excellent-response", "intent": "accurate-intent" },
+      "REC-0010": { "recommendations": "good-match",      "response": "excellent-response", "intent": "accurate-intent" },
+      "REC-0011": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "mostly-accurate" },
+      "REC-0012": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" }
+    },
+    "suggestions": {
+      "REC-0003": ["394086C01", "798691C00"],
+      "REC-0006": ["590413C01"],
+      "REC-0012": ["394086C01"]
+    },
+    "notes": {
+      "REC-0002": "Not ideal but there were some usable suggestions in there.",
+      "REC-0003": "Completely wrong recommendations — I disagree with this conversation being rated highly.",
+      "REC-0004": "Could do better on the product match, reply was fine.",
+      "REC-0006": "Same issue as other reviewers — Gemma missed the personalisation intent.",
+      "REC-0011": "Not convinced by the product suggestions, reply was also a bit stiff.",
+      "REC-0012": "Priority issue — Gemma clearly doesn't handle gifting use cases well. Needs retraining."
+    },
+    "pmNotes": {},
+    "flags": {
+      "REC-0003": [0],
+      "REC-0012": [0, 2]
+    },
+    "priorityConvIds": ["REC-0003", "REC-0012"],
+    "avgRating": 3
+  }
+}

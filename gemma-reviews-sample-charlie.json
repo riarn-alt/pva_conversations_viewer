@@ -1,0 +1,63 @@
+{
+  "exportDate": "2026-02-26T08:55:00.000Z",
+  "totalConversations": 15,
+  "reviewedCount": 10,
+  "reviewerAvgRating": 3.5,
+  "reviews": {
+    "ratings": {
+      "REC-0006": 2,
+      "REC-0007": 5,
+      "REC-0008": 2,
+      "REC-0009": 4,
+      "REC-0010": 2,
+      "REC-0011": 4,
+      "REC-0012": 1,
+      "REC-0013": 4,
+      "REC-0014": 1,
+      "REC-0015": 5
+    },
+    "relevance": {
+      "REC-0006": "no",      "REC-0007": "yes",     "REC-0008": "no",
+      "REC-0009": "yes",     "REC-0010": "partial",  "REC-0011": "yes",
+      "REC-0012": "no",      "REC-0013": "yes",      "REC-0014": "no",
+      "REC-0015": "yes"
+    },
+    "textQuality": {
+      "REC-0006": "poor",   "REC-0007": "good",       "REC-0008": "poor",
+      "REC-0009": "good",   "REC-0010": "acceptable",  "REC-0011": "good",
+      "REC-0012": "poor",   "REC-0013": "good",        "REC-0014": "poor",
+      "REC-0015": "good"
+    },
+    "tags": {
+      "REC-0006": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0007": { "recommendations": "excellent-match", "response": "excellent-response", "intent": "accurate-intent" },
+      "REC-0008": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0009": { "recommendations": "good-match",      "response": "good-response",      "intent": "accurate-intent" },
+      "REC-0010": { "recommendations": "partial-match",   "response": "needs-improvement",  "intent": "partially-accurate" },
+      "REC-0011": { "recommendations": "good-match",      "response": "good-response",      "intent": "mostly-accurate" },
+      "REC-0012": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0013": { "recommendations": "good-match",      "response": "good-response",      "intent": "accurate-intent" },
+      "REC-0014": { "recommendations": "wrong-match",     "response": "poor-response",      "intent": "wrong-intent" },
+      "REC-0015": { "recommendations": "excellent-match", "response": "excellent-response", "intent": "accurate-intent" }
+    },
+    "suggestions": {
+      "REC-0006": ["590413C01", "393513C01"],
+      "REC-0008": ["394086C01"],
+      "REC-0012": ["394086C01", "798691C00"],
+      "REC-0014": ["590413C01"]
+    },
+    "notes": {
+      "REC-0006": "Agree with other reviewers — wrong products, missed personalisation intent.",
+      "REC-0008": "Response was very confusing and the products had nothing to do with the request.",
+      "REC-0012": "Worst response I've seen in this batch. Priority for review.",
+      "REC-0014": "Irrelevant products suggested, reply didn't address the customer's actual need."
+    },
+    "pmNotes": {},
+    "flags": {
+      "REC-0008": [1],
+      "REC-0012": [0]
+    },
+    "priorityConvIds": ["REC-0012", "REC-0014"],
+    "avgRating": 3.5
+  }
+}

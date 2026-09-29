@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma Conversation Reviewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap');
+        
+        :root {
+            --pink: #FF93A0;
+            --purple: #BB568C;
+            --brown: #3C291D;
+            --red: #E73126;
+            --white: #FFFFFF;
+            --light-gray: #F7F7F7;
+            --mid-gray: #E5E5E5;
+            --text-gray: #666666;
+            --black: #1A1A1A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light-gray);
+            min-height: 100vh;
+            color: var(--black);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: var(--white);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--brown);
+            color: var(--white);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .header h1 {
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--pink);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+        
+        .progress-text {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: var(--pink);
+            color: var(--brown);
+        }
+        
+        .btn-primary:hover {
+            background: var(--white);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--white);
+        }
+        
+        /* Upload Section */
+        .upload-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            text-align: center;
+        }
+        
+        .upload-section h2 {
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--brown);
+        }
+        
+        .upload-section p {
+            color: var(--text-gray);
+            margin-bottom: 32px;
+        }
+        
+        .upload-box {
+            border: 2px dashed var(--mid-gray);
+            padding: 48px 64px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .upload-box:hover {
+            border-color: var(--pink);
+            background: rgba(255,147,160,0.05);
+        }
+        
+        .upload-box span {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--purple);
+            font-weight: 500;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid var(--mid-gray);
+            display: flex;
+            flex-direction: column;
+            background: var(--white);
+            min-height: 0;
+            flex-shrink: 0;
+            transition: width 0.2s ease;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .sidebar.collapsed {
+            width: 40px;
+            background: var(--light-gray);
+        }
+        
+        .sidebar.collapsed .sidebar-header,
+        .sidebar.collapsed .conversation-list {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            right: 8px;
+            top: 10px;
+            width: 24px;
+            height: 24px;
+            background: var(--white);
+            border: 1px solid var(--mid-gray);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-gray);
+            z-index: 10;
+            transition: all 0.15s;
+        }
+        
+        .sidebar-toggle:hover {
+            background: var(--light-gray);
+            color: var(--brown);
+        }
+        
+        .sidebar.collapsed .sidebar-toggle {
+            right: 8px;
+        }
+        
+        .sidebar-header {
+            padding: 12px 16px;
+            padding-top: 40px;
+            border-bottom: 1px solid var(--mid-gray);
+            background: var(--light-gray);
+            transition: opacity 0.15s;
+        }
+        
+        .sidebar-header h3 {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--mid-gray);
+            font-size: 12px;
+            font-family: inherit;
+            background: var(--white);
+            border-radius: 4px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .filter-row select {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid var(--mid-gray);
+            font-size: 11px;
+            font-family: inherit;
+            background: var(--white);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .filter-group {
+            margin-top: 10px;
+        }
+        
+        .filter-label {
+            display: block;
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--text-gray);
+            margin-bottom: 4px;
+        }
+        
+        .filter-date, .filter-number {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid var(--mid-gray);
+            font-size: 11px;
+            font-family: inherit;
+            background: var(--white);
+            border-radius: 4px;
+            min-width: 0;
+        }
+        
+        .filter-date:focus, .filter-number:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .filter-separator {
+            color: var(--text-gray);
+            font-size: 11px;
+            padding: 0 2px;
+            flex-shrink: 0;
+        }
+        
+        .btn-clear-filters {
+            width: 100%;
+            margin-top: 10px;
+            padding: 6px 10px;
+            background: transparent;
+            border: 1px solid var(--mid-gray);
+            color: var(--text-gray);
+            font-size: 10px;
+            font-family: inherit;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .btn-clear-filters:hover {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+        
+        .filter-select-full {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--mid-gray);
+            font-size: 11px;
+            font-family: inherit;
+            background: var(--white);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .filter-select-full:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .filter-active-count {
+            display: inline-block;
+            background: var(--pink);
+            color: var(--brown);
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 8px;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+        
+        .conversation-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px;
+            min-height: 0;
+            transition: opacity 0.15s;
+        }
+        
+        .conversation-item {
+            padding: 10px 12px;
+            margin-bottom: 3px;
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        
+        .conversation-item:hover {
+            background: var(--light-gray);
+        }
+        
+        .conversation-item.active {
+            border-color: var(--purple);
+            background: rgba(187,86,140,0.05);
+        }
+        
+        .conversation-item.reviewed {
+            border-left: 3px solid var(--pink);
+        }
+        
+        .conv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+        
+        .conv-id {
+            font-size: 10px;
+            color: var(--text-gray);
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        
+        .conv-rating {
+            display: flex;
+            gap: 1px;
+        }
+        
+        .conv-rating .star {
+            font-size: 9px;
+            color: var(--mid-gray);
+        }
+        
+        .conv-rating .star.filled {
+            color: var(--pink);
+        }
+        
+        .conv-preview {
+            font-size: 12px;
+            color: var(--black);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-bottom: 4px;
+        }
+        
+        .conv-meta {
+            font-size: 10px;
+            color: var(--text-gray);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .conv-meta .meta-relevance {
+            padding: 1px 5px;
+            border-radius: 6px;
+            font-size: 9px;
+            text-transform: capitalize;
+        }
+        
+        .conv-meta .meta-relevance.yes {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .conv-meta .meta-relevance.partial {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .conv-meta .meta-relevance.no {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+            background: var(--light-gray);
+        }
+        
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+        }
+        
+        .empty-state h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--brown);
+        }
+        
+        /* Chat Header / Review Panel */
+        .chat-header {
+            padding: 12px 20px;
+            background: var(--white);
+            border-bottom: 1px solid var(--mid-gray);
+            flex-shrink: 0;
+        }
+        
+        .chat-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+        }
+        
+        .chat-title-row.has-review {
+            margin-bottom: 12px;
+        }
+        
+        .chat-title {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-gray);
+        }
+        
+        .chat-meta {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin-top: 2px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--mid-gray);
+            background: var(--white);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .review-toggle-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--purple);
+            background: var(--white);
+            color: var(--purple);
+            cursor: pointer;
+            font-size: 11px;
+            font-family: inherit;
+            border-radius: 4px;
+            transition: all 0.15s;
+            margin-left: 12px;
+        }
+        
+        .review-toggle-btn:hover {
+            background: var(--purple);
+            color: var(--white);
+        }
+        
+        .review-toggle-btn.active {
+            background: var(--purple);
+            color: var(--white);
+        }
+        
+        /* Review Panel - Collapsible */
+        .review-panel {
+            display: none;
+            padding-top: 12px;
+            border-top: 1px solid var(--mid-gray);
+            margin-top: 12px;
+        }
+        
+        .review-panel.expanded {
+            display: block;
+        }
+        
+        /* Review Section */
+        .review-section {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--light-gray);
+            border-radius: 6px;
+            padding: 10px 0;
+            border: 1px solid var(--mid-gray);
+        }
+        
+        .review-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 0 16px;
+        }
+        
+        .review-group.inline {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            border-right: 1px solid var(--mid-gray);
+        }
+        
+        .review-group.inline.no-border,
+        .review-group.inline:last-child {
+            border-right: none;
+        }
+        
+        .review-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-gray);
+            white-space: nowrap;
+        }
+        
+        /* Inline Suggestion Input */
+        .suggestion-inline {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .suggestion-inline input {
+            width: 90px;
+            padding: 6px 8px;
+            border: 1px solid var(--mid-gray);
+            font-size: 11px;
+            font-family: inherit;
+            border-radius: 4px;
+            background: var(--white);
+        }
+        
+        .suggestion-inline input:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .suggestion-inline button {
+            padding: 6px 10px;
+            background: var(--brown);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        
+        .suggestion-inline button:hover {
+            background: var(--purple);
+        }
+        
+        /* Star Rating */
+        .star-rating {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .star-rating .star {
+            font-size: 18px;
+            cursor: pointer;
+            color: #C0C0C0;
+            text-shadow: 0 0 1px rgba(0,0,0,0.2);
+            transition: color 0.15s;
+        }
+        
+        .star-rating .star:hover,
+        .star-rating .star.active {
+            color: var(--pink);
+            text-shadow: none;
+        }
+        
+        .star-rating .star.hovered {
+            color: var(--pink);
+            text-shadow: none;
+        }
+        
+        /* Relevance Pills */
+        .relevance-options {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .relevance-pill {
+            padding: 5px 10px;
+            border: 1px solid #D0D0D0;
+            background: var(--white);
+            cursor: pointer;
+            font-size: 11px;
+            font-family: inherit;
+            font-weight: 500;
+            border-radius: 14px;
+            transition: all 0.15s;
+        }
+        
+        .relevance-pill:hover {
+            border-color: var(--purple);
+            background: var(--white);
+        }
+        
+        .relevance-pill.active {
+            background: var(--purple);
+            border-color: var(--purple);
+            color: var(--white);
+        }
+        
+        /* Suggestion Input */
+        .suggestion-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .suggestion-input-group input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--mid-gray);
+            font-size: 13px;
+            font-family: inherit;
+            border-radius: 4px;
+        }
+        
+        .suggestion-input-group input:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .suggestion-input-group button {
+            padding: 10px 16px;
+            background: var(--brown);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        
+        .suggestion-input-group button:hover {
+            background: var(--purple);
+        }
+        
+        .suggested-products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            min-height: 0;
+        }
+        
+        .suggested-products:empty {
+            margin-top: 0;
+        }
+        
+        .suggested-product {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px 3px 3px;
+            background: var(--light-gray);
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .suggested-product img {
+            width: 28px;
+            height: 28px;
+            object-fit: cover;
+            border-radius: 2px;
+            background: var(--white);
+        }
+        
+        .suggested-product .suggestion-link {
+            font-family: 'SF Mono', Monaco, monospace;
+            color: var(--purple);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .suggested-product .suggestion-link:hover {
+            text-decoration: underline;
+        }
+        
+        .suggested-product .remove {
+            cursor: pointer;
+            color: var(--text-gray);
+            margin-left: 2px;
+            font-size: 14px;
+            line-height: 1;
+        }
+        
+        .suggested-product .remove:hover {
+            color: var(--red);
+        }
+        
+        /* Notes */
+        .notes-row {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .notes-row textarea {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--mid-gray);
+            font-size: 12px;
+            font-family: inherit;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 38px;
+            background: var(--white);
+        }
+        
+        .notes-row textarea:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 2px rgba(187,86,140,0.1);
+        }
+        
+        /* PM Section */
+        .pm-section {
+            margin-top: 10px;
+            border: 1px dashed var(--mid-gray);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .pm-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: var(--light-gray);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        
+        .pm-header:hover {
+            background: var(--mid-gray);
+        }
+        
+        .pm-toggle-icon {
+            font-size: 12px;
+        }
+        
+        .pm-hint {
+            font-size: 10px;
+            color: var(--text-gray);
+            margin-left: auto;
+        }
+        
+        .pm-content {
+            padding: 8px 10px;
+            background: #FFFBF0;
+            border-top: 1px dashed var(--mid-gray);
+        }
+        
+        .pm-content textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #E8DFC7;
+            font-size: 12px;
+            font-family: inherit;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 40px;
+            background: var(--white);
+        }
+        
+        .pm-content textarea:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .pm-section.unlocked .pm-header {
+            background: #FFF3CD;
+        }
+        
+        .pm-section.unlocked .pm-hint {
+            display: none;
+        }
+        
+        /* Password Modal */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .password-dialog {
+            background: var(--white);
+            padding: 24px 28px;
+            border-radius: 8px;
+            width: 320px;
+            text-align: center;
+        }
+        
+        .password-dialog h3 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--brown);
+        }
+        
+        .password-dialog input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--mid-gray);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            margin-bottom: 16px;
+        }
+        
+        .password-dialog input:focus {
+            outline: none;
+            border-color: var(--purple);
+        }
+        
+        .password-dialog-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .password-dialog-buttons button {
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .password-dialog-buttons .btn-cancel {
+            background: var(--light-gray);
+            border: 1px solid var(--mid-gray);
+            color: var(--text-gray);
+        }
+        
+        .password-dialog-buttons .btn-unlock {
+            background: var(--purple);
+            border: 1px solid var(--purple);
+            color: var(--white);
+        }
+        
+        .password-dialog-buttons .btn-unlock:hover {
+            background: var(--brown);
+            border-color: var(--brown);
+        }
+        
+        .password-error {
+            color: var(--red);
+            font-size: 12px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        
+        /* Messages */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 28px;
+            min-height: 0;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            max-width: 85%;
+        }
+        
+        .message.input {
+            margin-left: 0;
+            margin-right: auto;
+        }
+        
+        .message.output {
+            margin-left: auto;
+            margin-right: 0;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        
+        .message.input .message-header {
+            flex-direction: row;
+        }
+        
+        .message.output .message-header {
+            flex-direction: row-reverse;
+        }
+        
+        .message-sender {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .message.input .message-sender {
+            color: var(--purple);
+        }
+        
+        .message.output .message-sender {
+            color: var(--brown);
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+        
+        .message-content {
+            padding: 14px 18px;
+            border-radius: 12px;
+            position: relative;
+        }
+        
+        .message.input .message-content {
+            background: var(--white);
+            border: 1px solid var(--mid-gray);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message.output .message-content {
+            background: var(--brown);
+            color: var(--white);
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.output.flagged .message-content {
+            background: var(--red);
+        }
+        
+        .message-text {
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .message-text em {
+            display: block;
+            margin-top: 8px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+        
+        .flag-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        
+        .message.output:hover .flag-btn {
+            opacity: 1;
+        }
+        
+        .flag-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .flag-btn.flagged {
+            opacity: 1;
+            background: var(--white);
+            color: var(--red);
+        }
+        
+        /* Product Cards */
+        .product-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .product-card a {
+            display: block;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        
+        .product-card a:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .product-card img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            background: var(--white);
+            display: block;
+        }
+        
+        .product-card .product-id {
+            font-size: 11px;
+            font-family: 'SF Mono', Monaco, monospace;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .product-card.no-image img {
+            display: none;
+        }
+        
+        .product-card.no-image a::before {
+            content: 'No image';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.1);
+            border: 1px dashed rgba(255,255,255,0.3);
+            border-radius: 6px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        /* Hidden file input */
+        #fileInput, #annotationInput, #mergeInput {
+            display: none;
+        }
+        
+        /* Merge Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal {
+            background: var(--white);
+            width: 95%;
+            max-width: 1400px;
+            max-height: 90vh;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 20px 28px;
+            background: var(--brown);
+            color: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            opacity: 0.7;
+            transition: opacity 0.15s;
+        }
+        
+        .modal-close:hover {
+            opacity: 1;
+        }
+        
+        .modal-content {
+            flex: 1;
+            overflow: auto;
+            padding: 24px 28px;
+        }
+        
+        .modal-actions {
+            padding: 16px 28px;
+            border-top: 1px solid var(--mid-gray);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        /* Merge Stats */
+        .merge-stats {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+            padding: 16px 20px;
+            background: var(--light-gray);
+            border-radius: 6px;
+        }
+        
+        .merge-stat {
+            text-align: center;
+        }
+        
+        .merge-stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--brown);
+        }
+        
+        .merge-stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-gray);
+            margin-top: 4px;
+        }
+        
+        /* Reviewers Legend */
+        .reviewers-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .reviewer-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--light-gray);
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .reviewer-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        /* Merge Table */
+        .merge-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .merge-table th {
+            text-align: left;
+            padding: 12px 14px;
+            background: var(--light-gray);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-gray);
+            border-bottom: 1px solid var(--mid-gray);
+            position: sticky;
+            top: 0;
+        }
+        
+        .merge-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--mid-gray);
+            vertical-align: middle;
+        }
+        
+        .merge-table tr:hover {
+            background: var(--light-gray);
+        }
+        
+        .merge-table .conv-id-cell {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+            color: var(--text-gray);
+        }
+        
+        .merge-table .avg-cell {
+            font-weight: 600;
+            color: var(--brown);
+        }
+        
+        .merge-table .rating-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .merge-table .stars {
+            color: var(--pink);
+            font-size: 12px;
+        }
+        
+        .merge-table .relevance-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            text-transform: capitalize;
+        }
+        
+        .merge-table .relevance-badge.yes,
+        .merge-table .relevance-badge.good {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .merge-table .relevance-badge.partial,
+        .merge-table .relevance-badge.acceptable {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .merge-table .relevance-badge.no,
+        .merge-table .relevance-badge.poor {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .disagreement-high {
+            background: rgba(231, 49, 38, 0.1) !important;
+        }
+        
+        .reviewer-scores {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .reviewer-score {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            background: var(--light-gray);
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .reviewer-score .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        /* Sort controls */
+        .merge-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        
+        .merge-controls label {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+        
+        .merge-controls select {
+            padding: 8px 12px;
+            border: 1px solid var(--mid-gray);
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: inherit;
+            background: var(--white);
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--light-gray);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--mid-gray);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-gray);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>Gemma Conversation Reviewer</h1>
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="progressText">0 of 0 reviewed</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <input type="file" id="annotationInput" accept=".json" onchange="loadAnnotations(event)">
+                <button class="btn btn-secondary" onclick="document.getElementById('annotationInput').click()">Load Reviews</button>
+                <button class="btn btn-secondary" onclick="exportAnnotations()">Export Reviews</button>
+                <input type="file" id="mergeInput" accept=".json" multiple onchange="loadMergedReviews(event)">
+                <button class="btn btn-secondary" onclick="document.getElementById('mergeInput').click()">Merge Reviews</button>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Load Conversations</button>
+            </div>
+        </div>
+
+        <div id="uploadSection" class="upload-section">
+            <h2>Welcome</h2>
+            <p>Load a conversation export to begin reviewing</p>
+            <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+                <span>Click to select Excel file</span>
+            </div>
+        </div>
+
+        <div id="mainContent" class="main-content" style="display: none;">
+            <div class="sidebar" id="sidebar">
+                <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle sidebar">◀</button>
+                <div class="sidebar-header">
+                    <h3>Conversations</h3>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search..." oninput="applyFilters()">
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <div class="filter-row">
+                            <select id="statusFilter" onchange="applyFilters()">
+                                <option value="all">All</option>
+                                <option value="reviewed">Reviewed</option>
+                                <option value="unreviewed">Not Reviewed</option>
+                                <option value="flagged">Has Flags</option>
+                            </select>
+                            <select id="relevanceFilter" onchange="applyFilters()">
+                                <option value="all">Any Relevance</option>
+                                <option value="yes">Relevant</option>
+                                <option value="partial">Partially</option>
+                                <option value="no">Not Relevant</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Date Range</label>
+                        <div class="filter-row">
+                            <input type="date" id="dateFrom" class="filter-date" onchange="applyFilters()" title="From date">
+                            <span class="filter-separator">→</span>
+                            <input type="date" id="dateTo" class="filter-date" onchange="applyFilters()" title="To date">
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Number of Turns</label>
+                        <div class="filter-row">
+                            <input type="number" id="turnsMin" class="filter-number" placeholder="Min" min="1" onchange="applyFilters()">
+                            <span class="filter-separator">→</span>
+                            <input type="number" id="turnsMax" class="filter-number" placeholder="Max" min="1" onchange="applyFilters()">
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Sort By</label>
+                        <select id="sortBy" class="filter-select-full" onchange="applyFilters()">
+                            <option value="date-desc">Date (Newest First)</option>
+                            <option value="date-asc">Date (Oldest First)</option>
+                            <option value="turns-desc">Most Turns</option>
+                            <option value="turns-asc">Fewest Turns</option>
+                            <option value="unreviewed">Unreviewed First</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn-clear-filters" onclick="clearAllFilters()">Clear All Filters</button>
+                </div>
+                <div class="conversation-list" id="conversationList"></div>
+            </div>
+
+            <div class="chat-area">
+                <div id="chatEmpty" class="empty-state">
+                    <h3>Select a conversation</h3>
+                    <p>Choose from the list to begin reviewing</p>
+                </div>
+                
+                <div id="chatContent" style="display: none; flex-direction: column; flex: 1; min-height: 0;">
+                    <div class="chat-header">
+                        <div class="chat-title-row" id="chatTitleRow">
+                            <div>
+                                <div class="chat-title">Review Conversation</div>
+                                <div class="chat-meta" id="chatMeta"></div>
+                            </div>
+                            <div class="nav-buttons">
+                                <button class="nav-btn" id="prevBtn" onclick="navigateConversation(-1)">← Prev</button>
+                                <button class="nav-btn" id="nextBtn" onclick="navigateConversation(1)">Next →</button>
+                                <button class="review-toggle-btn" id="reviewToggleBtn" onclick="toggleReviewPanel()">▼ Review</button>
+                            </div>
+                        </div>
+                        
+                        <div class="review-panel" id="reviewPanel">
+                            <div class="review-section">
+                                <div class="review-group inline">
+                                    <div class="review-label">Rating</div>
+                                    <div class="star-rating" id="starRating">
+                                        <span class="star" data-value="1">★</span>
+                                        <span class="star" data-value="2">★</span>
+                                        <span class="star" data-value="3">★</span>
+                                        <span class="star" data-value="4">★</span>
+                                        <span class="star" data-value="5">★</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="review-group inline">
+                                    <div class="review-label">Recommendations relevancy?</div>
+                                    <div class="relevance-options" id="relevanceOptions">
+                                        <button class="relevance-pill" data-value="yes">Yes</button>
+                                        <button class="relevance-pill" data-value="partial">Partial</button>
+                                        <button class="relevance-pill" data-value="no">No</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="review-group inline">
+                                    <div class="review-label">Text Quality</div>
+                                    <div class="relevance-options" id="textQualityOptions">
+                                        <button class="relevance-pill" data-value="good">Good</button>
+                                        <button class="relevance-pill" data-value="acceptable">OK</button>
+                                        <button class="relevance-pill" data-value="poor">Poor</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="review-group inline no-border">
+                                    <div class="review-label">Suggest</div>
+                                    <div class="suggestion-inline">
+                                        <input type="text" id="suggestionInput" placeholder="Product ID">
+                                        <button onclick="addSuggestion()">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="suggested-products" id="suggestedProducts"></div>
+                        
+                            <div class="notes-row">
+                                <textarea id="notesInput" placeholder="Add notes about this conversation..."></textarea>
+                            </div>
+                            
+                            <!-- PM/Team Section - Password Protected -->
+                            <div class="pm-section" id="pmSection">
+                                <div class="pm-header" onclick="togglePmSection()">
+                                    <span class="pm-toggle-icon" id="pmToggleIcon">🔒</span>
+                                    <span class="review-label" style="margin: 0;">PM / Team Notes</span>
+                                    <span class="pm-hint">(Click to unlock)</span>
+                                </div>
+                                <div class="pm-content" id="pmContent" style="display: none;">
+                                    <textarea id="pmNotesInput" placeholder="Internal notes for PM/team only..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="messages" id="messagesContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - Edit these if images don't load
+        // ============================================
+        const CONFIG = {
+            // Primary image URL pattern - uses AU site
+            // The hash 'dwfcb90575' may need updating if images stop loading
+            imageUrlPattern: (id, size = 200) => 
+                `https://au.pandora.net/dw/image/v2/BKNF_PRD/on/demandware.static/-/Sites-pandora-master-catalog/default/dwfcb90575/productimages/main_rect_base/${id}_RGB.jpg?q=50&sfrm=png&bgcolor=F7F7F7&sw=${size}`,
+            
+            // Product search URL for clicking through
+            productSearchUrl: (id) => 
+                `https://us.pandora.net/en/search?q=${id}`,
+            
+            // Password for PM/Team notes section
+            pmPassword: 'pandora2026'
+        };
+        // ============================================
+        
+        let conversations = {};
+        let allConversations = [];
+        let filteredConversations = [];
+        let currentConversationId = null;
+        let currentIndex = -1;
+        let pmUnlocked = false;
+        let sidebarCollapsed = false;
+        let reviewPanelExpanded = true;
+        
+        let reviews = {
+            ratings: {},        // convId -> 1-5
+            relevance: {},      // convId -> yes/partial/no
+            textQuality: {},    // convId -> good/acceptable/poor
+            suggestions: {},    // convId -> [productIds]
+            notes: {},          // convId -> string
+            pmNotes: {},        // convId -> string (password protected)
+            flags: {},          // convId -> [messageIndexes]
+            avgRating: null     // overall average rating input by reviewer
+        };
+
+        // File handling
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                
+                try {
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const firstSheet = workbook.Sheets[sheetName];
+                    const rawData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+
+                    let headers = null;
+                    let headerIndex = -1;
+                    for (let i = 0; i < rawData.length; i++) {
+                        const row = rawData[i];
+                        if (row.some(cell => cell && cell.toString().includes('External Record Id'))) {
+                            headers = row;
+                            headerIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (!headers) {
+                        alert('Could not find header row containing "External Record Id"');
+                        return;
+                    }
+
+                    const jsonData = [];
+                    for (let i = headerIndex + 1; i < rawData.length; i++) {
+                        const row = rawData[i];
+                        if (!row || row.length === 0 || row.every(cell => !cell)) continue;
+                        const obj = {};
+                        headers.forEach((h, idx) => obj[h || `col_${idx}`] = row[idx]);
+                        jsonData.push(obj);
+                    }
+
+                    processData(jsonData);
+                } catch (err) {
+                    alert('Error reading file: ' + err.message);
+                    return;
+                }
+
+                allConversations = Object.values(conversations);
+                filteredConversations = [...allConversations];
+                
+                displayConversations();
+                updateProgress();
+                
+                document.getElementById('uploadSection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'flex';
+                document.getElementById('progressContainer').style.display = 'flex';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processData(jsonData) {
+            conversations = {};
+            let currentConvId = null;
+
+            jsonData.forEach((row) => {
+                const id = row['External Record Id  ↑'] || row['External Record Id'];
+                const content = row['Content'];
+
+                if (id) {
+                    currentConvId = id;
+                    if (!conversations[id]) {
+                        conversations[id] = { id: id, messages: [] };
+                    }
+                }
+
+                if (currentConvId && content) {
+                    conversations[currentConvId].messages.push({
+                        timestamp: row['Message Sent Timestamp'],
+                        type: row['AI Agent Interaction Message Type'],
+                        content: content,
+                        channel: row['Channel Name']
+                    });
+                }
+            });
+
+            // Sort messages chronologically
+            Object.values(conversations).forEach(conv => {
+                conv.messages.sort((a, b) => {
+                    const dateA = new Date(a.timestamp);
+                    const dateB = new Date(b.timestamp);
+                    if (isNaN(dateA)) return 1;
+                    if (isNaN(dateB)) return -1;
+                    return dateA - dateB;
+                });
+            });
+        }
+
+        // Display
+        function displayConversations() {
+            const listEl = document.getElementById('conversationList');
+            listEl.innerHTML = '';
+
+            filteredConversations.forEach((conv, idx) => {
+                const div = document.createElement('div');
+                div.className = 'conversation-item';
+                if (reviews.ratings[conv.id]) div.classList.add('reviewed');
+                if (conv.id === currentConversationId) div.classList.add('active');
+                
+                div.onclick = () => selectConversation(conv.id, idx);
+                
+                const firstInput = conv.messages.find(m => m.type === 'Input');
+                const preview = firstInput?.content?.replace(/<[^>]*>/g, '').substring(0, 50) || 'No content';
+                const rating = reviews.ratings[conv.id] || 0;
+                
+                // Get conversation date
+                const convDates = conv.messages
+                    .map(m => m.timestamp ? new Date(m.timestamp) : null)
+                    .filter(d => d && !isNaN(d));
+                const convDate = convDates.length > 0 
+                    ? new Date(Math.min(...convDates)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                    : 'No date';
+                
+                // Count turns (user inputs only for "turns")
+                const userTurns = conv.messages.filter(m => m.type === 'Input').length;
+                
+                div.innerHTML = `
+                    <div class="conv-header">
+                        <span class="conv-id">${conv.id.substring(0, 8)}...</span>
+                        <div class="conv-rating">
+                            ${[1,2,3,4,5].map(i => `<span class="star ${i <= rating ? 'filled' : ''}">★</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="conv-preview">${preview}...</div>
+                    <div class="conv-meta">
+                        <span>📅 ${convDate}</span>
+                        <span>💬 ${userTurns} turns</span>
+                        <span>${conv.messages.length} msgs</span>
+                        ${reviews.relevance[conv.id] ? `<span class="meta-relevance ${reviews.relevance[conv.id]}">${reviews.relevance[conv.id]}</span>` : ''}
+                    </div>
+                `;
+                
+                listEl.appendChild(div);
+            });
+            
+            updateFilterCount();
+        }
+
+        function selectConversation(convId, index) {
+            // Save current review before switching
+            if (currentConversationId) {
+                saveCurrentReview();
+            }
+            
+            currentConversationId = convId;
+            currentIndex = index !== undefined ? index : filteredConversations.findIndex(c => c.id === convId);
+            
+            const conv = conversations[convId];
+            
+            document.getElementById('chatEmpty').style.display = 'none';
+            document.getElementById('chatContent').style.display = 'flex';
+            
+            // Initialize review panel state
+            initReviewPanel();
+            
+            // Update meta
+            const inputCount = conv.messages.filter(m => m.type === 'Input').length;
+            const outputCount = conv.messages.filter(m => m.type === 'Output').length;
+            document.getElementById('chatMeta').textContent = 
+                `${inputCount} customer messages · ${outputCount} agent responses · ID: ${convId.substring(0, 12)}...`;
+            
+            // Update navigation
+            document.getElementById('prevBtn').disabled = currentIndex <= 0;
+            document.getElementById('nextBtn').disabled = currentIndex >= filteredConversations.length - 1;
+            
+            // Load existing review
+            loadReview(convId);
+            
+            // Display messages
+            displayMessages(conv);
+            
+            // Update sidebar selection
+            document.querySelectorAll('.conversation-item').forEach((item, i) => {
+                item.classList.toggle('active', i === currentIndex);
+            });
+        }
+
+        function navigateConversation(delta) {
+            const newIndex = currentIndex + delta;
+            if (newIndex >= 0 && newIndex < filteredConversations.length) {
+                selectConversation(filteredConversations[newIndex].id, newIndex);
+                
+                // Scroll sidebar item into view
+                const items = document.querySelectorAll('.conversation-item');
+                if (items[newIndex]) {
+                    items[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        }
+
+        function displayMessages(conv) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            
+            const flags = reviews.flags[conv.id] || [];
+
+            conv.messages.forEach((msg, idx) => {
+                const div = document.createElement('div');
+                const type = msg.type?.toLowerCase() || 'unknown';
+                const isFlagged = flags.includes(idx);
+                
+                div.className = `message ${type}${isFlagged ? ' flagged' : ''}`;
+                
+                let content = msg.content || '';
+                let productIds = [];
+                
+                if (type === 'output') {
+                    const parsed = parseAgentOutput(content);
+                    content = parsed.formatted;
+                    productIds = parsed.productIds;
+                } else {
+                    // Clean hidden spans from input
+                    content = content.replace(/<span class='hide'>.*?<\/span>/g, '');
+                }
+                
+                const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) : '';
+                
+                div.innerHTML = `
+                    <div class="message-header">
+                        <span class="message-sender">${type === 'input' ? 'Customer' : 'Gemma'}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text">${content}</div>
+                        ${productIds.length > 0 ? createProductImages(productIds) : ''}
+                        ${type === 'output' ? `<button class="flag-btn ${isFlagged ? 'flagged' : ''}" onclick="toggleFlag(${idx})">🚩 ${isFlagged ? 'Flagged' : 'Flag'}</button>` : ''}
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        function parseAgentOutput(content) {
+            if (!content) return { formatted: content, productIds: [] };
+
+            // Try to extract JSON from markdown code block
+            let jsonStr = content;
+            const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+            if (jsonMatch) {
+                jsonStr = jsonMatch[1];
+            }
+
+            try {
+                const parsed = JSON.parse(jsonStr);
+                let formatted = '';
+
+                if (parsed.conversationAnswer) {
+                    formatted += parsed.conversationAnswer;
+                }
+
+                if (parsed.followup) {
+                    formatted += `<em>${parsed.followup}</em>`;
+                }
+
+                const productIds = [];
+                if (parsed.productIds && Array.isArray(parsed.productIds)) {
+                    productIds.push(...parsed.productIds);
+                }
+                if (parsed.productDetail && Array.isArray(parsed.productDetail)) {
+                    productIds.push(...parsed.productDetail);
+                }
+
+                return { formatted: formatted.trim() || content, productIds };
+            } catch (e) {
+                return { formatted: content, productIds: [] };
+            }
+        }
+
+        function createProductImages(productIds) {
+            if (!productIds.length) return '';
+            
+            return `<div class="product-cards">${productIds.map(id => {
+                const imgUrl = CONFIG.imageUrlPattern(id, 200);
+                const searchUrl = CONFIG.productSearchUrl(id);
+                return `
+                <div class="product-card" data-product-id="${id}">
+                    <a href="${searchUrl}" target="_blank" title="View ${id} on Pandora">
+                        <img src="${imgUrl}" 
+                             alt="${id}"
+                             onload="this.parentElement.parentElement.classList.add('loaded')"
+                             onerror="this.onerror=null; this.parentElement.parentElement.classList.add('no-image');">
+                    </a>
+                    <span class="product-id">${id}</span>
+                </div>
+            `}).join('')}</div>`;
+        }
+
+        // Review management
+        function loadReview(convId) {
+            // Stars
+            const rating = reviews.ratings[convId] || 0;
+            document.querySelectorAll('#starRating .star').forEach(star => {
+                star.classList.toggle('active', parseInt(star.dataset.value) <= rating);
+            });
+            
+            // Relevance
+            const relevance = reviews.relevance[convId] || null;
+            document.querySelectorAll('#relevanceOptions .relevance-pill').forEach(pill => {
+                pill.classList.toggle('active', pill.dataset.value === relevance);
+            });
+            
+            // Text Quality
+            const textQuality = reviews.textQuality[convId] || null;
+            document.querySelectorAll('#textQualityOptions .relevance-pill').forEach(pill => {
+                pill.classList.toggle('active', pill.dataset.value === textQuality);
+            });
+            
+            // Suggestions
+            displaySuggestions(convId);
+            
+            // Notes
+            document.getElementById('notesInput').value = reviews.notes[convId] || '';
+            
+            // PM Notes (only load if unlocked)
+            if (pmUnlocked) {
+                document.getElementById('pmNotesInput').value = reviews.pmNotes[convId] || '';
+            }
+        }
+
+        function saveCurrentReview() {
+            if (!currentConversationId) return;
+            
+            const notes = document.getElementById('notesInput').value.trim();
+            if (notes) {
+                reviews.notes[currentConversationId] = notes;
+            } else {
+                delete reviews.notes[currentConversationId];
+            }
+            
+            // Save PM notes if unlocked
+            if (pmUnlocked) {
+                const pmNotes = document.getElementById('pmNotesInput').value.trim();
+                if (pmNotes) {
+                    reviews.pmNotes[currentConversationId] = pmNotes;
+                } else {
+                    delete reviews.pmNotes[currentConversationId];
+                }
+            }
+            
+            updateProgress();
+            displayConversations();
+        }
+
+        // Star rating
+        document.getElementById('starRating').addEventListener('click', (e) => {
+            if (e.target.classList.contains('star')) {
+                const value = parseInt(e.target.dataset.value);
+                reviews.ratings[currentConversationId] = value;
+                
+                document.querySelectorAll('#starRating .star').forEach(star => {
+                    star.classList.toggle('active', parseInt(star.dataset.value) <= value);
+                });
+                
+                updateProgress();
+                displayConversations();
+            }
+        });
+
+        document.getElementById('starRating').addEventListener('mouseover', (e) => {
+            if (e.target.classList.contains('star')) {
+                const value = parseInt(e.target.dataset.value);
+                document.querySelectorAll('#starRating .star').forEach(star => {
+                    star.classList.toggle('hovered', parseInt(star.dataset.value) <= value);
+                });
+            }
+        });
+
+        document.getElementById('starRating').addEventListener('mouseout', () => {
+            document.querySelectorAll('#starRating .star').forEach(star => {
+                star.classList.remove('hovered');
+            });
+        });
+
+        // Relevance
+        document.getElementById('relevanceOptions').addEventListener('click', (e) => {
+            if (e.target.classList.contains('relevance-pill')) {
+                const value = e.target.dataset.value;
+                reviews.relevance[currentConversationId] = value;
+                
+                document.querySelectorAll('#relevanceOptions .relevance-pill').forEach(pill => {
+                    pill.classList.toggle('active', pill.dataset.value === value);
+                });
+                
+                displayConversations();
+            }
+        });
+
+        // Text Quality
+        document.getElementById('textQualityOptions').addEventListener('click', (e) => {
+            if (e.target.classList.contains('relevance-pill')) {
+                const value = e.target.dataset.value;
+                reviews.textQuality[currentConversationId] = value;
+                
+                document.querySelectorAll('#textQualityOptions .relevance-pill').forEach(pill => {
+                    pill.classList.toggle('active', pill.dataset.value === value);
+                });
+                
+                displayConversations();
+            }
+        });
+
+        // PM Section - Password Protected
+        function togglePmSection() {
+            if (pmUnlocked) {
+                // Already unlocked, just toggle visibility
+                const content = document.getElementById('pmContent');
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            } else {
+                // Show password dialog
+                showPasswordDialog();
+            }
+        }
+
+        function showPasswordDialog() {
+            const modal = document.createElement('div');
+            modal.className = 'password-modal';
+            modal.id = 'passwordModal';
+            modal.innerHTML = `
+                <div class="password-dialog">
+                    <h3>🔒 Enter PM Password</h3>
+                    <div class="password-error" id="passwordError">Incorrect password</div>
+                    <input type="password" id="passwordInput" placeholder="Password" autofocus>
+                    <div class="password-dialog-buttons">
+                        <button class="btn-cancel" onclick="closePasswordDialog()">Cancel</button>
+                        <button class="btn-unlock" onclick="verifyPassword()">Unlock</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            document.getElementById('passwordInput').focus();
+            document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') verifyPassword();
+            });
+        }
+
+        function closePasswordDialog() {
+            const modal = document.getElementById('passwordModal');
+            if (modal) modal.remove();
+        }
+
+        function verifyPassword() {
+            const input = document.getElementById('passwordInput');
+            const error = document.getElementById('passwordError');
+            
+            if (input.value === CONFIG.pmPassword) {
+                pmUnlocked = true;
+                closePasswordDialog();
+                
+                // Update UI
+                document.getElementById('pmSection').classList.add('unlocked');
+                document.getElementById('pmToggleIcon').textContent = '🔓';
+                document.getElementById('pmContent').style.display = 'block';
+                
+                // Load PM notes for current conversation
+                if (currentConversationId) {
+                    document.getElementById('pmNotesInput').value = reviews.pmNotes[currentConversationId] || '';
+                }
+            } else {
+                error.style.display = 'block';
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // Sidebar Toggle
+        function toggleSidebar() {
+            sidebarCollapsed = !sidebarCollapsed;
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                toggle.textContent = '▶';
+                toggle.title = 'Show sidebar';
+            } else {
+                sidebar.classList.remove('collapsed');
+                toggle.textContent = '◀';
+                toggle.title = 'Hide sidebar';
+            }
+        }
+        
+        // Review Panel Toggle
+        function toggleReviewPanel() {
+            reviewPanelExpanded = !reviewPanelExpanded;
+            const panel = document.getElementById('reviewPanel');
+            const btn = document.getElementById('reviewToggleBtn');
+            const titleRow = document.getElementById('chatTitleRow');
+            
+            if (reviewPanelExpanded) {
+                panel.classList.add('expanded');
+                btn.textContent = '▲ Review';
+                btn.classList.add('active');
+                titleRow.classList.add('has-review');
+            } else {
+                panel.classList.remove('expanded');
+                btn.textContent = '▼ Review';
+                btn.classList.remove('active');
+                titleRow.classList.remove('has-review');
+            }
+        }
+        
+        // Initialize review panel as expanded
+        function initReviewPanel() {
+            const panel = document.getElementById('reviewPanel');
+            const btn = document.getElementById('reviewToggleBtn');
+            const titleRow = document.getElementById('chatTitleRow');
+            
+            if (reviewPanelExpanded) {
+                panel.classList.add('expanded');
+                btn.textContent = '▲ Review';
+                btn.classList.add('active');
+                titleRow.classList.add('has-review');
+            }
+        }
+
+        // Suggestions
+        function addSuggestion() {
+            const input = document.getElementById('suggestionInput');
+            const productId = input.value.trim().toUpperCase();
+            
+            if (!productId || !currentConversationId) return;
+            
+            if (!reviews.suggestions[currentConversationId]) {
+                reviews.suggestions[currentConversationId] = [];
+            }
+            
+            if (!reviews.suggestions[currentConversationId].includes(productId)) {
+                reviews.suggestions[currentConversationId].push(productId);
+                displaySuggestions(currentConversationId);
+            }
+            
+            input.value = '';
+        }
+
+        document.getElementById('suggestionInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addSuggestion();
+        });
+
+        function removeSuggestion(productId) {
+            if (!currentConversationId) return;
+            
+            const suggestions = reviews.suggestions[currentConversationId];
+            if (suggestions) {
+                const idx = suggestions.indexOf(productId);
+                if (idx > -1) {
+                    suggestions.splice(idx, 1);
+                    displaySuggestions(currentConversationId);
+                }
+            }
+        }
+
+        function displaySuggestions(convId) {
+            const container = document.getElementById('suggestedProducts');
+            const suggestions = reviews.suggestions[convId] || [];
+            
+            container.innerHTML = suggestions.map(id => `
+                <div class="suggested-product">
+                    <img src="${CONFIG.imageUrlPattern(id, 64)}" 
+                         alt="${id}"
+                         onerror="this.style.opacity='0'; this.style.width='0'; this.style.padding='0';">
+                    <a href="${CONFIG.productSearchUrl(id)}" target="_blank" class="suggestion-link">${id}</a>
+                    <span class="remove" onclick="removeSuggestion('${id}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        // Flagging
+        function toggleFlag(messageIndex) {
+            if (!currentConversationId) return;
+            
+            if (!reviews.flags[currentConversationId]) {
+                reviews.flags[currentConversationId] = [];
+            }
+            
+            const flags = reviews.flags[currentConversationId];
+            const idx = flags.indexOf(messageIndex);
+            
+            if (idx > -1) {
+                flags.splice(idx, 1);
+            } else {
+                flags.push(messageIndex);
+            }
+            
+            displayMessages(conversations[currentConversationId]);
+        }
+
+        // Progress
+        function updateProgress() {
+            const total = allConversations.length;
+            const reviewed = Object.keys(reviews.ratings).length;
+            const percent = total > 0 ? (reviewed / total) * 100 : 0;
+            
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `${reviewed} of ${total} reviewed`;
+        }
+
+        // Filters
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const relevance = document.getElementById('relevanceFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const turnsMin = document.getElementById('turnsMin').value;
+            const turnsMax = document.getElementById('turnsMax').value;
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredConversations = allConversations.filter(conv => {
+                // Search
+                if (search) {
+                    const hasMatch = conv.messages.some(m => 
+                        m.content?.toLowerCase().includes(search)
+                    );
+                    if (!hasMatch && !conv.id.toLowerCase().includes(search)) return false;
+                }
+                
+                // Status
+                const isReviewed = !!reviews.ratings[conv.id];
+                const hasFlagged = reviews.flags[conv.id]?.length > 0;
+                
+                if (status === 'reviewed' && !isReviewed) return false;
+                if (status === 'unreviewed' && isReviewed) return false;
+                if (status === 'flagged' && !hasFlagged) return false;
+                
+                // Relevance
+                if (relevance !== 'all' && reviews.relevance[conv.id] !== relevance) return false;
+                
+                // Date range
+                if (dateFrom || dateTo) {
+                    const convDates = conv.messages
+                        .map(m => m.timestamp ? new Date(m.timestamp) : null)
+                        .filter(d => d && !isNaN(d));
+                    
+                    if (convDates.length === 0) return false;
+                    
+                    const convDate = new Date(Math.min(...convDates));
+                    
+                    if (dateFrom) {
+                        const fromDate = new Date(dateFrom);
+                        fromDate.setHours(0, 0, 0, 0);
+                        if (convDate < fromDate) return false;
+                    }
+                    
+                    if (dateTo) {
+                        const toDate = new Date(dateTo);
+                        toDate.setHours(23, 59, 59, 999);
+                        if (convDate > toDate) return false;
+                    }
+                }
+                
+                // Turn count (number of messages)
+                const turnCount = conv.messages.length;
+                
+                if (turnsMin && turnCount < parseInt(turnsMin)) return false;
+                if (turnsMax && turnCount > parseInt(turnsMax)) return false;
+                
+                return true;
+            });
+            
+            // Sort
+            filteredConversations.sort((a, b) => {
+                const getDate = (conv) => {
+                    const dates = conv.messages
+                        .map(m => m.timestamp ? new Date(m.timestamp) : null)
+                        .filter(d => d && !isNaN(d));
+                    return dates.length > 0 ? Math.min(...dates) : 0;
+                };
+                
+                const getTurns = (conv) => conv.messages.filter(m => m.type === 'Input').length;
+                
+                switch (sortBy) {
+                    case 'date-desc':
+                        return getDate(b) - getDate(a);
+                    case 'date-asc':
+                        return getDate(a) - getDate(b);
+                    case 'turns-desc':
+                        return getTurns(b) - getTurns(a);
+                    case 'turns-asc':
+                        return getTurns(a) - getTurns(b);
+                    case 'unreviewed':
+                        const aReviewed = reviews.ratings[a.id] ? 1 : 0;
+                        const bReviewed = reviews.ratings[b.id] ? 1 : 0;
+                        return aReviewed - bReviewed;
+                    default:
+                        return 0;
+                }
+            });
+            
+            displayConversations();
+            updateFilterCount();
+        }
+        
+        function clearAllFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('relevanceFilter').value = 'all';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('turnsMin').value = '';
+            document.getElementById('turnsMax').value = '';
+            document.getElementById('sortBy').value = 'date-desc';
+            applyFilters();
+        }
+        
+        function updateFilterCount() {
+            const total = allConversations.length;
+            const filtered = filteredConversations.length;
+            const searchInput = document.getElementById('searchInput');
+            
+            if (filtered < total) {
+                searchInput.placeholder = `Search... (${filtered} of ${total})`;
+            } else {
+                searchInput.placeholder = `Search...`;
+            }
+        }
+
+        // Export/Import
+        function exportAnnotations() {
+            saveCurrentReview();
+            
+            // Show dialog to ask for final average rating
+            showExportDialog();
+        }
+        
+        function showExportDialog() {
+            const reviewedCount = Object.keys(reviews.ratings).length;
+            const totalCount = allConversations.length;
+            
+            // Calculate current average from individual ratings
+            const ratings = Object.values(reviews.ratings);
+            const calculatedAvg = ratings.length > 0 
+                ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) 
+                : 'N/A';
+            
+            const modal = document.createElement('div');
+            modal.className = 'password-modal';
+            modal.id = 'exportModal';
+            modal.innerHTML = `
+                <div class="password-dialog" style="width: 400px;">
+                    <h3>📊 Export Reviews</h3>
+                    <div style="text-align: left; margin-bottom: 16px; padding: 12px; background: var(--light-gray); border-radius: 6px; font-size: 13px;">
+                        <div style="margin-bottom: 8px;"><strong>Reviewed:</strong> ${reviewedCount} of ${totalCount} conversations</div>
+                        <div><strong>Calculated Average:</strong> ${calculatedAvg} ★</div>
+                    </div>
+                    <div style="text-align: left; margin-bottom: 8px;">
+                        <label style="font-size: 12px; font-weight: 500; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px;">Your Overall Assessment (1-5)</label>
+                    </div>
+                    <input type="number" id="avgRatingInput" min="1" max="5" step="0.5" placeholder="e.g., 3.5" style="text-align: center; font-size: 18px;">
+                    <div style="font-size: 11px; color: var(--text-gray); margin-bottom: 16px;">What overall rating would you give Gemma's performance?</div>
+                    <div class="password-dialog-buttons">
+                        <button class="btn-cancel" onclick="closeExportDialog()">Cancel</button>
+                        <button class="btn-unlock" onclick="completeExport()">Export</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            document.getElementById('avgRatingInput').focus();
+            document.getElementById('avgRatingInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') completeExport();
+            });
+        }
+        
+        function closeExportDialog() {
+            const modal = document.getElementById('exportModal');
+            if (modal) modal.remove();
+        }
+        
+        function completeExport() {
+            const avgInput = document.getElementById('avgRatingInput');
+            const avgRating = parseFloat(avgInput.value);
+            
+            if (avgRating && avgRating >= 1 && avgRating <= 5) {
+                reviews.avgRating = avgRating;
+            }
+            
+            closeExportDialog();
+            
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                totalConversations: allConversations.length,
+                reviewedCount: Object.keys(reviews.ratings).length,
+                reviewerAvgRating: reviews.avgRating,
+                reviews: reviews
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gemma-reviews-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function loadAnnotations(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.reviews) {
+                        reviews = data.reviews;
+                    } else {
+                        // Support old format
+                        reviews = data;
+                    }
+                    
+                    updateProgress();
+                    displayConversations();
+                    
+                    if (currentConversationId) {
+                        loadReview(currentConversationId);
+                        displayMessages(conversations[currentConversationId]);
+                    }
+                    
+                    alert(`Loaded ${Object.keys(reviews.ratings || {}).length} reviews`);
+                } catch (err) {
+                    alert('Error loading file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Merged Reviews
+        let mergedData = {
+            reviewers: [],
+            reviews: {}  // convId -> { reviewerName: reviewData }
+        };
+        
+        const reviewerColors = [
+            '#BB568C', '#FF93A0', '#3C291D', '#E73126', '#4A90D9', 
+            '#50C878', '#FFB347', '#9B59B6', '#1ABC9C', '#E74C3C'
+        ];
+
+        function loadMergedReviews(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+            
+            mergedData = { reviewers: [], reviews: {} };
+            let loaded = 0;
+            
+            files.forEach((file, fileIndex) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        const reviewerName = file.name.replace('.json', '').replace('gemma-reviews-', '');
+                        
+                        mergedData.reviewers.push({
+                            name: reviewerName,
+                            color: reviewerColors[fileIndex % reviewerColors.length],
+                            file: file.name,
+                            avgRating: data.reviewerAvgRating || null,
+                            reviewedCount: data.reviewedCount || 0
+                        });
+                        
+                        const reviews = data.reviews || data;
+                        
+                        // Process ratings
+                        if (reviews.ratings) {
+                            Object.entries(reviews.ratings).forEach(([convId, rating]) => {
+                                if (!mergedData.reviews[convId]) {
+                                    mergedData.reviews[convId] = {};
+                                }
+                                if (!mergedData.reviews[convId][reviewerName]) {
+                                    mergedData.reviews[convId][reviewerName] = {};
+                                }
+                                mergedData.reviews[convId][reviewerName].rating = rating;
+                            });
+                        }
+                        
+                        // Process relevance
+                        if (reviews.relevance) {
+                            Object.entries(reviews.relevance).forEach(([convId, rel]) => {
+                                if (!mergedData.reviews[convId]) {
+                                    mergedData.reviews[convId] = {};
+                                }
+                                if (!mergedData.reviews[convId][reviewerName]) {
+                                    mergedData.reviews[convId][reviewerName] = {};
+                                }
+                                mergedData.reviews[convId][reviewerName].relevance = rel;
+                            });
+                        }
+                        
+                        // Process text quality
+                        if (reviews.textQuality) {
+                            Object.entries(reviews.textQuality).forEach(([convId, quality]) => {
+                                if (!mergedData.reviews[convId]) {
+                                    mergedData.reviews[convId] = {};
+                                }
+                                if (!mergedData.reviews[convId][reviewerName]) {
+                                    mergedData.reviews[convId][reviewerName] = {};
+                                }
+                                mergedData.reviews[convId][reviewerName].textQuality = quality;
+                            });
+                        }
+                        
+                        // Process suggestions
+                        if (reviews.suggestions) {
+                            Object.entries(reviews.suggestions).forEach(([convId, suggs]) => {
+                                if (!mergedData.reviews[convId]) {
+                                    mergedData.reviews[convId] = {};
+                                }
+                                if (!mergedData.reviews[convId][reviewerName]) {
+                                    mergedData.reviews[convId][reviewerName] = {};
+                                }
+                                mergedData.reviews[convId][reviewerName].suggestions = suggs;
+                            });
+                        }
+                        
+                        // Process notes
+                        if (reviews.notes) {
+                            Object.entries(reviews.notes).forEach(([convId, note]) => {
+                                if (!mergedData.reviews[convId]) {
+                                    mergedData.reviews[convId] = {};
+                                }
+                                if (!mergedData.reviews[convId][reviewerName]) {
+                                    mergedData.reviews[convId][reviewerName] = {};
+                                }
+                                mergedData.reviews[convId][reviewerName].notes = note;
+                            });
+                        }
+                        
+                        // Process flags
+                        if (reviews.flags) {
+                            Object.entries(reviews.flags).forEach(([convId, flags]) => {
+                                if (!mergedData.reviews[convId]) {
+                                    mergedData.reviews[convId] = {};
+                                }
+                                if (!mergedData.reviews[convId][reviewerName]) {
+                                    mergedData.reviews[convId][reviewerName] = {};
+                                }
+                                mergedData.reviews[convId][reviewerName].flags = flags;
+                            });
+                        }
+                        
+                    } catch (err) {
+                        console.error('Error parsing file:', file.name, err);
+                    }
+                    
+                    loaded++;
+                    if (loaded === files.length) {
+                        showMergedModal();
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            // Reset input so same files can be loaded again
+            event.target.value = '';
+        }
+
+        function showMergedModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.id = 'mergeModal';
+            
+            const convIds = Object.keys(mergedData.reviews);
+            const reviewerCount = mergedData.reviewers.length;
+            
+            // Calculate stats
+            let totalRatings = 0;
+            let ratingSum = 0;
+            let disagreements = 0;
+            
+            convIds.forEach(convId => {
+                const reviewerData = mergedData.reviews[convId];
+                const ratings = Object.values(reviewerData).map(r => r.rating).filter(r => r);
+                
+                if (ratings.length > 0) {
+                    totalRatings += ratings.length;
+                    ratingSum += ratings.reduce((a, b) => a + b, 0);
+                    
+                    if (ratings.length > 1) {
+                        const maxDiff = Math.max(...ratings) - Math.min(...ratings);
+                        if (maxDiff >= 2) disagreements++;
+                    }
+                }
+            });
+            
+            const avgRating = totalRatings > 0 ? (ratingSum / totalRatings).toFixed(1) : '-';
+            
+            modal.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2>Merged Reviews Analysis</h2>
+                        <button class="modal-close" onclick="closeMergeModal()">×</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="merge-stats">
+                            <div class="merge-stat">
+                                <div class="merge-stat-value">${reviewerCount}</div>
+                                <div class="merge-stat-label">Reviewers</div>
+                            </div>
+                            <div class="merge-stat">
+                                <div class="merge-stat-value">${convIds.length}</div>
+                                <div class="merge-stat-label">Conversations</div>
+                            </div>
+                            <div class="merge-stat">
+                                <div class="merge-stat-value">${avgRating}</div>
+                                <div class="merge-stat-label">Avg Rating</div>
+                            </div>
+                            <div class="merge-stat">
+                                <div class="merge-stat-value">${disagreements}</div>
+                                <div class="merge-stat-label">High Disagreements (2+ stars)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="reviewers-legend">
+                            ${mergedData.reviewers.map(r => `
+                                <div class="reviewer-badge">
+                                    <div class="reviewer-color" style="background: ${r.color}"></div>
+                                    <span>${r.name}</span>
+                                    ${r.avgRating ? `<span style="margin-left: 4px; opacity: 0.7;">(${r.avgRating}★)</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="merge-controls">
+                            <label>Sort by:</label>
+                            <select id="mergeSortBy" onchange="updateMergeTable()">
+                                <option value="avg-asc">Avg Rating (Low → High)</option>
+                                <option value="avg-desc">Avg Rating (High → Low)</option>
+                                <option value="disagreement">Highest Disagreement</option>
+                                <option value="convId">Conversation ID</option>
+                            </select>
+                            <label style="margin-left: 16px;">Filter:</label>
+                            <select id="mergeFilter" onchange="updateMergeTable()">
+                                <option value="all">All Conversations</option>
+                                <option value="disagreement">With Disagreements Only</option>
+                                <option value="low-rated">Low Rated (≤2 avg)</option>
+                                <option value="not-relevant">Marked Not Relevant</option>
+                                <option value="poor-text">Poor Text Quality</option>
+                            </select>
+                        </div>
+                        
+                        <div id="mergeTableContainer">
+                            ${generateMergeTable(convIds)}
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="exportMergedCSV()">Export as CSV</button>
+                        <button class="btn btn-primary" onclick="closeMergeModal()">Close</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function generateMergeTable(convIds, sortBy = 'avg-asc', filter = 'all') {
+            // Calculate averages and prepare data
+            let tableData = convIds.map(convId => {
+                const reviewerData = mergedData.reviews[convId];
+                const ratings = [];
+                const relevances = [];
+                const textQualities = [];
+                
+                mergedData.reviewers.forEach(reviewer => {
+                    const review = reviewerData[reviewer.name];
+                    if (review?.rating) ratings.push({ reviewer: reviewer.name, rating: review.rating, color: reviewer.color });
+                    if (review?.relevance) relevances.push({ reviewer: reviewer.name, relevance: review.relevance, color: reviewer.color });
+                    if (review?.textQuality) textQualities.push({ reviewer: reviewer.name, textQuality: review.textQuality, color: reviewer.color });
+                });
+                
+                const avgRating = ratings.length > 0 
+                    ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+                    : null;
+                
+                const maxDisagreement = ratings.length > 1 
+                    ? Math.max(...ratings.map(r => r.rating)) - Math.min(...ratings.map(r => r.rating))
+                    : 0;
+                
+                return {
+                    convId,
+                    ratings,
+                    relevances,
+                    textQualities,
+                    avgRating,
+                    maxDisagreement,
+                    reviewerData
+                };
+            });
+            
+            // Filter
+            if (filter === 'disagreement') {
+                tableData = tableData.filter(d => d.maxDisagreement >= 2);
+            } else if (filter === 'low-rated') {
+                tableData = tableData.filter(d => d.avgRating !== null && d.avgRating <= 2);
+            } else if (filter === 'not-relevant') {
+                tableData = tableData.filter(d => 
+                    d.relevances.some(r => r.relevance === 'no')
+                );
+            } else if (filter === 'poor-text') {
+                tableData = tableData.filter(d => 
+                    d.textQualities.some(t => t.textQuality === 'poor')
+                );
+            }
+            
+            // Sort
+            if (sortBy === 'avg-asc') {
+                tableData.sort((a, b) => (a.avgRating || 999) - (b.avgRating || 999));
+            } else if (sortBy === 'avg-desc') {
+                tableData.sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0));
+            } else if (sortBy === 'disagreement') {
+                tableData.sort((a, b) => b.maxDisagreement - a.maxDisagreement);
+            } else if (sortBy === 'convId') {
+                tableData.sort((a, b) => a.convId.localeCompare(b.convId));
+            }
+            
+            return `
+                <table class="merge-table">
+                    <thead>
+                        <tr>
+                            <th>Conversation ID</th>
+                            <th>Avg Rating</th>
+                            <th>Individual Ratings</th>
+                            <th>Relevance</th>
+                            <th>Text Quality</th>
+                            <th>Suggestions</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableData.map(row => {
+                            const hasDisagreement = row.maxDisagreement >= 2;
+                            
+                            // Collect all suggestions
+                            const allSuggestions = [];
+                            Object.entries(row.reviewerData).forEach(([reviewer, data]) => {
+                                if (data.suggestions?.length) {
+                                    allSuggestions.push(...data.suggestions.map(s => ({ id: s, reviewer })));
+                                }
+                            });
+                            
+                            // Collect all notes
+                            const allNotes = [];
+                            Object.entries(row.reviewerData).forEach(([reviewer, data]) => {
+                                if (data.notes) {
+                                    allNotes.push({ text: data.notes, reviewer });
+                                }
+                            });
+                            
+                            return `
+                                <tr class="${hasDisagreement ? 'disagreement-high' : ''}">
+                                    <td class="conv-id-cell">${row.convId.substring(0, 12)}...</td>
+                                    <td class="avg-cell">
+                                        ${row.avgRating !== null ? row.avgRating.toFixed(1) : '-'}
+                                        <span class="stars">${row.avgRating !== null ? '★'.repeat(Math.round(row.avgRating)) : ''}</span>
+                                    </td>
+                                    <td>
+                                        <div class="reviewer-scores">
+                                            ${row.ratings.map(r => `
+                                                <div class="reviewer-score">
+                                                    <div class="dot" style="background: ${r.color}"></div>
+                                                    ${r.rating}★
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="reviewer-scores">
+                                            ${row.relevances.map(r => `
+                                                <div class="reviewer-score">
+                                                    <div class="dot" style="background: ${r.color}"></div>
+                                                    <span class="relevance-badge ${r.relevance}">${r.relevance}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="reviewer-scores">
+                                            ${row.textQualities.map(t => `
+                                                <div class="reviewer-score">
+                                                    <div class="dot" style="background: ${t.color}"></div>
+                                                    <span class="relevance-badge ${t.textQuality}">${t.textQuality}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        ${allSuggestions.length > 0 
+                                            ? allSuggestions.map(s => s.id).filter((v, i, a) => a.indexOf(v) === i).join(', ')
+                                            : '-'
+                                        }
+                                    </td>
+                                    <td>
+                                        ${allNotes.length > 0 
+                                            ? `<span title="${allNotes.map(n => n.reviewer + ': ' + n.text).join('\n\n')}">${allNotes.length} note(s)</span>`
+                                            : '-'
+                                        }
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function updateMergeTable() {
+            const sortBy = document.getElementById('mergeSortBy').value;
+            const filter = document.getElementById('mergeFilter').value;
+            const container = document.getElementById('mergeTableContainer');
+            container.innerHTML = generateMergeTable(Object.keys(mergedData.reviews), sortBy, filter);
+        }
+
+        function closeMergeModal() {
+            const modal = document.getElementById('mergeModal');
+            if (modal) modal.remove();
+        }
+
+        function exportMergedCSV() {
+            const convIds = Object.keys(mergedData.reviews);
+            
+            // Build CSV header
+            let headers = ['Conversation ID', 'Avg Rating', 'Max Disagreement'];
+            mergedData.reviewers.forEach(r => {
+                headers.push(`${r.name} - Rating`);
+                headers.push(`${r.name} - Relevance`);
+                headers.push(`${r.name} - Text Quality`);
+                headers.push(`${r.name} - Suggestions`);
+                headers.push(`${r.name} - Notes`);
+            });
+            
+            // Add reviewer summary row headers
+            headers.push('');  // Separator column
+            headers.push('Reviewer Avg Ratings');
+            
+            // Build rows
+            const rows = convIds.map(convId => {
+                const reviewerData = mergedData.reviews[convId];
+                const ratings = Object.values(reviewerData).map(r => r.rating).filter(r => r);
+                
+                const avgRating = ratings.length > 0 
+                    ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(2)
+                    : '';
+                
+                const maxDisagreement = ratings.length > 1 
+                    ? Math.max(...ratings) - Math.min(...ratings)
+                    : 0;
+                
+                const row = [convId, avgRating, maxDisagreement];
+                
+                mergedData.reviewers.forEach(reviewer => {
+                    const review = reviewerData[reviewer.name] || {};
+                    row.push(review.rating || '');
+                    row.push(review.relevance || '');
+                    row.push(review.textQuality || '');
+                    row.push((review.suggestions || []).join('; '));
+                    row.push((review.notes || '').replace(/"/g, '""'));
+                });
+                
+                return row;
+            });
+            
+            // Add summary row with reviewer avg ratings
+            const summaryRow = ['SUMMARY', '', ''];
+            mergedData.reviewers.forEach(reviewer => {
+                summaryRow.push(reviewer.avgRating || ''); // Their self-reported avg
+                summaryRow.push('');
+                summaryRow.push('');
+                summaryRow.push('');
+                summaryRow.push('');
+            });
+            rows.push(summaryRow);
+            
+            // Create CSV
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `merged-reviews-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
