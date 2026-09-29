@@ -521,10 +521,38 @@
             color: var(--text-gray);
         }
         
+        .chat-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+        }
+
         .chat-meta {
             font-size: 12px;
             color: var(--text-gray);
-            margin-top: 2px;
+        }
+
+        .copy-id-btn {
+            font-size: 11px;
+            padding: 2px 8px;
+            border: 1px solid var(--mid-gray);
+            border-radius: 4px;
+            background: var(--white);
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .copy-id-btn:hover {
+            border-color: var(--pink);
+            color: var(--pink);
+        }
+
+        .copy-id-btn.copied {
+            background: var(--pink);
+            border-color: var(--pink);
+            color: var(--white);
         }
         
         .nav-buttons {
@@ -2029,7 +2057,10 @@
                         <div class="chat-title-row" id="chatTitleRow">
                             <div>
                                 <div class="chat-title">Review Conversation</div>
-                                <div class="chat-meta" id="chatMeta"></div>
+                                <div class="chat-meta-row">
+                                    <span class="chat-meta" id="chatMeta"></span>
+                                    <button class="copy-id-btn" id="copyIdBtn" onclick="copyConversationId()" title="Copy full conversation ID">📋 Copy ID</button>
+                                </div>
                             </div>
                             <div class="nav-buttons">
                                 <button class="nav-btn" id="prevBtn" onclick="navigateConversation(-1)">← Prev</button>
@@ -2857,6 +2888,40 @@
             updateFilterCount();
         }
 
+        function copyConversationId() {
+            if (!currentConversationId) return;
+            const btn = document.getElementById('copyIdBtn');
+            const showCopied = () => {
+                btn.textContent = '✓ Copied';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy ID';
+                    btn.classList.remove('copied');
+                }, 1500);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(currentConversationId).then(showCopied).catch(() => {
+                    copyConversationIdFallback(currentConversationId);
+                    showCopied();
+                });
+            } else {
+                copyConversationIdFallback(currentConversationId);
+                showCopied();
+            }
+        }
+
+        function copyConversationIdFallback(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
         function selectConversation(convId, index) {
             // Save current review before switching
             if (currentConversationId) {
@@ -2877,8 +2942,10 @@
             // Update meta
             const inputCount = conv.messages.filter(m => m.type === 'Input').length;
             const outputCount = conv.messages.filter(m => m.type === 'Output').length;
-            document.getElementById('chatMeta').textContent = 
+            const chatMetaEl = document.getElementById('chatMeta');
+            chatMetaEl.textContent =
                 `${inputCount} customer messages · ${outputCount} agent responses · ID: ${convId.substring(0, 12)}...`;
+            chatMetaEl.title = `Full ID: ${convId}`;
             
             // Update navigation
             document.getElementById('prevBtn').disabled = currentIndex <= 0;
